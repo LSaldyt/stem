@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import subprocess, threading
+import multiprocessing, subprocess 
 
 from pprint     import pprint
 from contextlib import contextmanager
@@ -8,13 +8,16 @@ from backbone   import launch
 
 GLOBAL_POOL = dict()
 
-def init(database, notifier):
-    # TODO GET ARGS
-    # print(args)
-    # print('init')
-    thread = threading.Thread(target=lambda:launch('https://github.com/LSaldyt/cryptometric'))
+def start(database, notifier, *args):
+    name = args[0]
+    thread = multiprocessing.Process(target=lambda:launch('https://github.com/LSaldyt/{}'.format(name)))
     thread.start()
-    GLOBAL_POOL['compare'] = thread
+    GLOBAL_POOL[name] = thread
+
+def stop(database, notifier, *args):
+    name = args[0]
+    GLOBAL_POOL[name].join(1)
+    GLOBAL_POOL[name].terminate()
 
 commandTree = dict(init=init)
 
