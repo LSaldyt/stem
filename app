@@ -8,9 +8,15 @@ from backbone   import launch
 
 GLOBAL_POOL = dict()
 
+def get_url(name, user='LSaldyt'):
+    if '.' in name or '/' in name:
+        return name
+    else:
+        return 'https://github.com/{}/{}'.format(user, name)
+
 def start(database, notifier, *args):
     name = args[0]
-    thread = multiprocessing.Process(target=lambda:launch('https://github.com/LSaldyt/{}'.format(name)))
+    thread = multiprocessing.Process(target=lambda:launch(get_url(name)))
     thread.start()
     GLOBAL_POOL[name] = thread
 
