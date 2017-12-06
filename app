@@ -28,7 +28,7 @@ def stop(database, notifier, *args):
 def save_data(database):
     pass
 
-commandTree = dict(start=start)
+commandTree = dict(start=start, stop=stop)
 
 if __name__ == '__main__':
     try:
