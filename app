@@ -16,7 +16,7 @@ def get_url(name, user='LSaldyt'):
 
 def start(database, notifier, *args):
     name = args[0]
-    thread = multiprocessing.Process(target=lambda:launch(get_url(name)))
+    thread = multiprocessing.Process(target=lambda:launch(get_url(name), name))
     thread.start()
     GLOBAL_POOL[name] = thread
 
@@ -25,11 +25,14 @@ def stop(database, notifier, *args):
     GLOBAL_POOL[name].join(1)
     GLOBAL_POOL[name].terminate()
 
-commandTree = dict(init=init)
+def save_data(database):
+    pass
+
+commandTree = dict(start=start)
 
 if __name__ == '__main__':
     try:
-        cord = Cord(commandTree)
+        cord = Cord(commandTree, save_data)
         cord.loop()
     finally:
         for thread in GLOBAL_POOL.values():
