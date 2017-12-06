@@ -25,6 +25,9 @@ def stop(database, notifier, *args):
     GLOBAL_POOL[name].join(1)
     GLOBAL_POOL[name].terminate()
 
+def status(database):
+    print('Cord..')
+
 def save_data(database):
     pass
 
@@ -32,7 +35,7 @@ commandTree = dict(start=start)
 
 if __name__ == '__main__':
     try:
-        cord = Cord(commandTree, save_data)
+        cord = Cord(commandTree, save_data, status)
         cord.loop()
     finally:
         for thread in GLOBAL_POOL.values():
