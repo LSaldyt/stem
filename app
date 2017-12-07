@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
-import multiprocessing, subprocess 
+import multiprocessing, subprocess, os
 
 from pprint     import pprint
 from contextlib import contextmanager
 from cord       import Cord
-from backbone   import launch
 
 GLOBAL_POOL = dict()
+
+@contextmanager
+def directory(name):
+    os.chdir(name)
+    try:
+        yield
+    finally:
+        os.chdir('..')
+
+def get_sha():
+    output = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
+    return output.decode('utf-8').strip()
 
 def get_url(name, user='LSaldyt'):
     if '.' in name or '/' in name:
@@ -16,7 +27,13 @@ def get_url(name, user='LSaldyt'):
 
 def start(database, notifier, *args):
     name = args[0]
-    thread = multiprocessing.Process(target=lambda:launch(get_url(name), name))
+    if name in GLOBAL_POOL:
+        GLOBAL_POOL[name].terminate()
+    def launch(name):
+        subprocess.call(['git', 'clone', get_url(name), name])
+        with directory(name):
+            subprocess.call(['bash', 'run.sh'])
+    thread = multiprocessing.Process(target=lambda:launch(name))
     thread.start()
     GLOBAL_POOL[name] = thread
 
@@ -40,4 +57,4 @@ if __name__ == '__main__':
         cord.loop()
     finally:
         for thread in GLOBAL_POOL.values():
-            thread.join()
+            thread.terminate()
