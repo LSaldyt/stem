@@ -27,6 +27,7 @@ def stop(database, notifier, *args):
 
 def status(database):
     print('Cord..')
+    print(GLOBAL_POOL)
 
 def save_data(database):
     pass
