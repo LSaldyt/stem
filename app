@@ -30,8 +30,11 @@ def start(database, notifier, *args):
     if name in GLOBAL_POOL:
         GLOBAL_POOL[name].terminate()
     def launch(name):
-        subprocess.call(['git', 'clone', get_url(name), name])
-        with directory(name):
+        appDir = 'apps/' + name
+        if not os.path.isdir(appDir):
+            subprocess.call(['git', 'clone', get_url(name), appDir])
+        with directory(appDir):
+            subprocess.call(['git', 'pull'])
             subprocess.call(['bash', 'run.sh'])
     thread = multiprocessing.Process(target=lambda:launch(name))
     thread.start()
