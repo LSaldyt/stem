@@ -2,4 +2,4 @@ etc
 __pycache__
 *.json
 *.pkl
-cryptometric
+apps/*

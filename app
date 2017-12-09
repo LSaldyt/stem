@@ -9,11 +9,12 @@ GLOBAL_POOL = dict()
 
 @contextmanager
 def directory(name):
+    original = os.getcwd()
     os.chdir(name)
     try:
         yield
     finally:
-        os.chdir('..')
+        os.chdir(original)
 
 def get_sha():
     output = subprocess.check_output(['git', 'rev-parse', 'HEAD'])
@@ -28,22 +29,26 @@ def get_url(name, user='LSaldyt'):
 def start(database, notifier, *args):
     name = args[0]
     if name in GLOBAL_POOL:
-        GLOBAL_POOL[name].terminate()
-    def launch(name):
-        appDir = 'apps/' + name
-        if not os.path.isdir(appDir):
-            subprocess.call(['git', 'clone', get_url(name), appDir])
-        with directory(appDir):
-            subprocess.call(['git', 'pull'])
-            subprocess.call(['bash', 'run.sh'])
-    thread = multiprocessing.Process(target=lambda:launch(name))
-    thread.start()
-    GLOBAL_POOL[name] = thread
+        GLOBAL_POOL[name].kill()
+    appDir = 'apps/' + name
+    if not os.path.isdir(appDir):
+        subprocess.call(['git', 'clone', get_url(name), appDir])
+    with directory(appDir):
+        subprocess.call(['git', 'pull'])
+        GLOBAL_POOL[name] = subprocess.Popen(['./app'])
 
 def stop(database, notifier, *args):
     name = args[0]
-    GLOBAL_POOL[name].join(1)
-    GLOBAL_POOL[name].terminate()
+    p = GLOBAL_POOL[name]
+    pid = p.pid
+    p.terminate()
+    # Check if the process has really terminated & force kill if not.
+    try:
+        os.kill(pid, 0)
+        p.kill()
+        print("Forced kill")
+    except OSError as e:
+        print("Terminated gracefully")
 
 def status(database):
     print('Cord..')
@@ -60,4 +65,4 @@ if __name__ == '__main__':
         cord.loop()
     finally:
         for thread in GLOBAL_POOL.values():
-            thread.terminate()
+            thread.kill()
